@@ -10,10 +10,23 @@
         body { font-family: 'Inter', sans-serif; }
         .progress-ring { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
         .animate-pulse-slow { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        #music-player { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .drawing-placeholder {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px dashed #334155;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1rem;
+            border-radius: 1rem;
+            min-height: 120px;
+        }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
     </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center p-4 pb-24">
+<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center p-4">
 
     <!-- Encabezado de Estado -->
     <header class="w-full max-w-md mt-4 mb-6 flex justify-between items-center">
@@ -25,7 +38,7 @@
         </div>
     </header>
 
-    <main class="w-full max-w-md flex-grow flex flex-col">
+    <main class="w-full max-w-md flex-grow flex flex-col gap-6">
         
         <!-- PANTALLA INICIAL (IDLE) -->
         <section id="screen-idle" class="space-y-4">
@@ -37,7 +50,7 @@
                 </div>
                 <div class="p-6">
                     <div id="warmup-list" class="space-y-4 mb-6">
-                        <!-- Se llena con JS -->
+                        <!-- Se llena dinámicamente con JS -->
                     </div>
 
                     <div class="pt-4 border-t border-slate-800">
@@ -48,7 +61,7 @@
                             </button>
                         </div>
                         <div id="selected-exercises-grid" class="grid grid-cols-5 gap-2">
-                            <!-- Se llena con JS -->
+                            <!-- Se llena dinámicamente con JS -->
                         </div>
                     </div>
 
@@ -107,64 +120,152 @@
                 <p class="text-xs font-bold text-slate-500 uppercase mb-2">Inversión de hoy:</p>
                 <p id="final-total-time" class="text-5xl font-mono font-black text-emerald-400">00:00</p>
             </div>
-            <button onclick="resetWorkout()" class="w-full bg-orange-600 py-4 rounded-2xl font-bold">VOLVER AL INICIO</button>
+            <button onclick="resetWorkout()" class="w-full bg-orange-600 py-4 rounded-2xl font-bold transition-all hover:bg-orange-500">VOLVER AL INICIO</button>
+        </section>
+
+        <!-- REPRODUCTOR DE MÚSICA Y VÍDEOS EXPLICATIVOS -->
+        <section class="w-full space-y-4">
+            <!-- Música -->
+            <div id="music-container" class="w-full bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+                <div class="p-3 border-b border-slate-800 bg-slate-800/30 flex items-center gap-2">
+                    <span class="text-xs font-black text-slate-400 uppercase tracking-widest">🎵 Música para tu sesión</span>
+                </div>
+                <div class="aspect-video w-full">
+                    <iframe 
+                        src="https://www.youtube.com/embed/tJYLSNYGM7I?si=JSI9vbBDCJpAtf3E" 
+                        title="YouTube video player" 
+                        class="w-full h-full"
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        referrerpolicy="strict-origin-when-cross-origin" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+
+            <!-- Desplegable de Vídeos Técnicos -->
+            <details class="group bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+                <summary class="p-4 cursor-pointer flex justify-between items-center bg-slate-800/20 hover:bg-slate-800/40 transition-colors">
+                    <span class="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-2">
+                        📺 Vídeos Técnicos Rápidos (Shorts)
+                    </span>
+                    <span class="text-slate-500 transition-transform group-open:rotate-180">▼</span>
+                </summary>
+                <div class="p-4 grid grid-cols-2 gap-2">
+                    <div id="video-links-grid" class="contents"></div>
+                </div>
+            </details>
         </section>
 
     </main>
 
-    <!-- Reproductor de Música (YouTube Directo - Código Incrustado) -->
-    <div id="music-player" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-slate-900 border-t border-slate-800 rounded-t-3xl shadow-2xl translate-y-[calc(100%-48px)] z-40 overflow-hidden">
-        <button onclick="toggleMusicPanel()" class="w-full h-12 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors border-b border-slate-800/50">
-            <span id="music-toggle-icon">🎵</span> MÚSICA PARA ENTRENAR
-        </button>
-        
-        <div class="p-4 flex flex-col gap-4 h-72">
-            <div class="flex-grow">
-                <iframe id="music-iframe" 
-                    class="w-full h-full rounded-2xl border border-slate-800 bg-black" 
-                    src="https://www.youtube.com/embed/n2KeSxmorqM" 
-                    title="🔥 120 min Música para Correr y Entrenar 2025 • Mix Motivacional 🔥" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    referrerpolicy="strict-origin-when-cross-origin" 
-                    allowfullscreen>
-                </iframe>
-            </div>
-            <div class="text-center">
-                <a href="https://youtu.be/n2KeSxmorqM" target="_blank" class="text-[10px] text-slate-500 hover:text-orange-400 transition-colors uppercase font-bold tracking-tighter">
-                    ¿No carga? Abrir en YouTube directamente ↗
-                </a>
-            </div>
-        </div>
-    </div>
+    <!-- Modal de Detalles del Ejercicio -->
+    <div id="modal-info" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-slate-900 max-w-md w-full rounded-3xl overflow-hidden border border-slate-800 my-8">
+            <div id="modal-header" class="p-10 text-center text-7xl bg-blue-600">🦵</div>
+            <div class="p-6">
+                <h3 id="modal-title" class="text-2xl font-black mb-6">Título</h3>
+                
+                <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Guía Visual (3 Pasos):</h4>
+                <div id="drawings-container" class="grid grid-cols-3 gap-2 mb-8">
+                    <!-- Dibujos generados dinámicamente -->
+                </div>
 
-    <!-- Modal de Detalles -->
-    <div id="modal-info" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
-        <div class="bg-slate-900 max-w-sm w-full rounded-3xl overflow-hidden border border-slate-800">
-            <div id="modal-header" class="p-12 text-center text-7xl bg-blue-600">🦵</div>
-            <div class="p-8">
-                <h3 id="modal-title" class="text-2xl font-black mb-4">Título</h3>
-                <ul id="modal-list" class="space-y-4 mb-8 text-sm text-slate-300"></ul>
-                <button onclick="closeModal()" class="w-full bg-white text-black py-4 rounded-2xl font-bold">CERRAR</button>
+                <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Instrucciones:</h4>
+                <ul id="modal-list" class="space-y-3 mb-8 text-sm text-slate-300"></ul>
+                
+                <button onclick="closeModal()" class="w-full bg-white text-black py-4 rounded-2xl font-bold hover:bg-slate-200 transition-colors">CERRAR</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- DATOS ---
+        // --- BASE DE DATOS DE EJERCICIOS CON ENLACES VERIFICADOS ---
         const ALL_EXERCISES = [
-            { name: "Sentadillas", instructions: ["Pies a anchura de hombros.", "Baja cadera como si te sentaras.", "Espalda recta, peso en talones.", "Sube apretando glúteos."], icon: "🦵", color: "bg-blue-600" },
-            { name: "Flexiones", instructions: ["Manos bajo los hombros.", "Cuerpo recto como tabla.", "Baja pecho al suelo.", "Apoya rodillas si es difícil."], icon: "💪", color: "bg-red-600" },
-            { name: "Zancadas", instructions: ["Paso largo adelante.", "Baja rodilla trasera al suelo.", "Mantén torso vertical.", "Alterna piernas."], icon: "🏃", color: "bg-green-600" },
-            { name: "Escaladores", instructions: ["Posición de plancha alta.", "Lleva rodillas al pecho rápido.", "Mantén cadera baja.", "Ritmo constante."], icon: "⛰️", color: "bg-yellow-600" },
-            { name: "Burpees", instructions: ["Baja a cuclillas.", "Salta atrás a plancha.", "Vuelve a cuclillas.", "Termina con salto vertical."], icon: "🔥", color: "bg-purple-600" },
-            { name: "Jumping Jacks", instructions: ["Salta abriendo piernas y brazos.", "Vuelve a cerrar en el aire.", "Rodillas suaves.", "Ritmo ágil."], icon: "✨", color: "bg-pink-600" },
-            { name: "Plancha", instructions: ["Apoya antebrazos y pies.", "Cuerpo paralelo al suelo.", "Aprieta abdomen fuerte.", "No bajes cadera."], icon: "🧱", color: "bg-indigo-600" },
-            { name: "Puente de Glúteo", instructions: ["Boca arriba, pies cerca.", "Eleva cadera al techo.", "Aprieta glúteos arriba.", "Baja despacio."], icon: "🍑", color: "bg-orange-600" },
-            { name: "Bicicleta", instructions: ["Tumbado, manos tras nuca.", "Codo a rodilla contraria.", "Alterna fluido.", "Estira pierna libre."], icon: "🚲", color: "bg-teal-600" },
-            { name: "Skipping", instructions: ["Corre en el sitio.", "Sube rodillas al ombligo.", "Mueve brazos coordinados.", "Usa las puntas."], icon: "⚡", color: "bg-cyan-600" },
-            { name: "Toque de Hombros", instructions: ["Plancha alta.", "Toca hombro opuesto con mano.", "Cadera estable.", "Abdomen fuerte."], icon: "✋", color: "bg-amber-600" },
-            { name: "Squat Jumps", instructions: ["Haz sentadilla.", "Salta explosivo arriba.", "Amortigua la caída.", "Usa brazos de impulso."], icon: "🚀", color: "bg-violet-600" }
+            { 
+                name: "Sentadillas", 
+                instructions: ["Pies a anchura de hombros.", "Baja cadera como si te sentaras.", "Espalda recta, peso en talones.", "Sube apretando glúteos."], 
+                icon: "🦵", color: "bg-blue-600",
+                drawings: ["Posición inicial erguido", "Descenso de cadera", "Profundidad máxima"],
+                video: "https://www.youtube.com/shorts/YaXPRqUwItQ"
+            },
+            { 
+                name: "Flexiones", 
+                instructions: ["Manos bajo los hombros.", "Cuerpo recto como tabla.", "Baja pecho al suelo.", "Apoya rodillas si es difícil."], 
+                icon: "💪", color: "bg-red-600",
+                drawings: ["Plancha alta", "Pecho cerca del suelo", "Extensión de brazos"],
+                video: "https://www.youtube.com/shorts/IODxDxX7oi4"
+            },
+            { 
+                name: "Zancadas", 
+                instructions: ["Paso largo adelante.", "Baja rodilla trasera al suelo.", "Mantén torso vertical.", "Alterna piernas."], 
+                icon: "🏃", color: "bg-green-600",
+                drawings: ["Pies juntos", "Paso largo adelante", "Rodilla trasera abajo"],
+                video: "https://www.youtube.com/shorts/G8SndH_A0S0"
+            },
+            { 
+                name: "Escaladores", 
+                instructions: ["Posición de plancha alta.", "Lleva rodillas al pecho rápido.", "Mantén cadera baja.", "Ritmo constante."], 
+                icon: "⛰️", color: "bg-yellow-600",
+                drawings: ["Apoyo en manos", "Rodilla derecha al pecho", "Cambio explosivo"],
+                video: "https://www.youtube.com/shorts/6-Ssc3M75-0"
+            },
+            { 
+                name: "Burpees", 
+                instructions: ["Baja a cuclillas.", "Salta atrás a plancha.", "Vuelve a cuclillas.", "Termina con salto vertical."], 
+                icon: "🔥", color: "bg-purple-600",
+                drawings: ["Posición de rana", "Salto a plancha", "Salto arriba con palmada"],
+                video: "https://www.youtube.com/shorts/qS797G9_XUo"
+            },
+            { 
+                name: "Jumping Jacks", 
+                instructions: ["Salta abriendo piernas y brazos.", "Vuelve a cerrar en el aire.", "Rodillas suaves.", "Ritmo ágil."], 
+                icon: "✨", color: "bg-pink-600",
+                drawings: ["Posición firme", "Salto abierto (estrella)", "Vuelve a inicio"],
+                video: "https://www.youtube.com/shorts/u8o_u6vFhR0"
+            },
+            { 
+                name: "Plancha", 
+                instructions: ["Apoya antebrazos y pies.", "Cuerpo paralelo al suelo.", "Aprieta abdomen fuerte.", "No bajes cadera."], 
+                icon: "🧱", color: "bg-indigo-600",
+                drawings: ["Apoyo antebrazos", "Alineación de espalda", "Abdomen contraído"],
+                video: "https://www.youtube.com/shorts/pSHjTRCQxIw"
+            },
+            { 
+                name: "Puente de Glúteo", 
+                instructions: ["Boca arriba, pies cerca.", "Eleva cadera al techo.", "Aprieta glúteos arriba.", "Baja despacio."], 
+                icon: "🍑", color: "bg-orange-600",
+                drawings: ["Tumbado boca arriba", "Elevación de pelvis", "Contracción máxima"],
+                video: "https://www.youtube.com/shorts/wPM8icPu6H8"
+            },
+            { 
+                name: "Bicicleta", 
+                instructions: ["Tumbado, manos tras nuca.", "Codo a rodilla contraria.", "Alterna fluido.", "Estira pierna libre."], 
+                icon: "🚲", color: "bg-teal-600",
+                drawings: ["Tumbado manos nuca", "Codo-rodilla derecha", "Codo-rodilla izquierda"],
+                video: "https://www.youtube.com/shorts/19N96_fGgYc"
+            },
+            { 
+                name: "Skipping", 
+                instructions: ["Corre en el sitio.", "Sube rodillas al ombligo.", "Mueve brazos coordinados.", "Usa las puntas."], 
+                icon: "⚡", color: "bg-cyan-600",
+                drawings: ["Trote ligero", "Elevación alta rodilla", "Uso de brazos"],
+                video: "https://www.youtube.com/shorts/E76x5D76T0o"
+            },
+            { 
+                name: "Toque de Hombros", 
+                instructions: ["Plancha alta.", "Toca hombro opuesto con mano.", "Cadera estable.", "Abdomen fuerte."], 
+                icon: "✋", color: "bg-amber-600",
+                drawings: ["Plancha alta fija", "Mano toca hombro", "Cambio sin balanceo"],
+                video: "https://www.youtube.com/shorts/lP3X7X6fWms"
+            },
+            { 
+                name: "Squat Jumps", 
+                instructions: ["Haz sentadilla.", "Salta explosivo arriba.", "Amortigua la caída.", "Usa brazos de impulso."], 
+                icon: "🚀", color: "bg-violet-600",
+                drawings: ["Sentadilla previa", "Salto vertical", "Aterrizaje suave"],
+                video: "https://www.youtube.com/shorts/9_itUv5C5wI"
+            }
         ];
 
         const WARMUP_STEPS = [
@@ -184,13 +285,13 @@
         let isActive = false;
         let timerInterval;
         let totalTimeInterval;
-        let musicPanelOpen = false;
 
         // --- FUNCIONES CORE ---
 
         function init() {
             renderWarmupList();
             shuffleExercises();
+            renderVideoLinks();
         }
 
         function renderWarmupList() {
@@ -203,6 +304,16 @@
                         <p class="text-xs text-slate-500">${step.desc}</p>
                     </div>
                 </div>
+            `).join('');
+        }
+
+        function renderVideoLinks() {
+            const grid = document.getElementById('video-links-grid');
+            grid.innerHTML = ALL_EXERCISES.map(ex => `
+                <a href="${ex.video}" target="_blank" class="flex items-center gap-2 p-3 bg-slate-800/40 hover:bg-slate-700 rounded-xl transition-all border border-slate-700/50 group">
+                    <span class="text-lg group-hover:scale-110 transition-transform">${ex.icon}</span>
+                    <span class="text-[10px] font-bold text-slate-300 truncate">${ex.name}</span>
+                </a>
             `).join('');
         }
 
@@ -315,15 +426,6 @@
             showScreen('screen-idle'); shuffleExercises();
         }
 
-        // --- FUNCIONES MÚSICA ---
-        function toggleMusicPanel() {
-            musicPanelOpen = !musicPanelOpen;
-            const panel = document.getElementById('music-player');
-            const icon = document.getElementById('music-toggle-icon');
-            panel.style.transform = musicPanelOpen ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(calc(100% - 48px))";
-            icon.innerText = musicPanelOpen ? "🔽" : "🎵";
-        }
-
         // --- UTILIDADES ---
         function showScreen(id) {
             ['screen-idle', 'screen-active', 'screen-finished'].forEach(s => document.getElementById(s).classList.add('hidden'));
@@ -353,13 +455,29 @@
             document.getElementById('modal-header').innerText = ex.icon;
             document.getElementById('modal-header').className = `p-12 text-center text-7xl ${ex.color}`;
             document.getElementById('modal-title').innerText = ex.name;
+            
+            // Renderizar dibujos explicativos
+            const drawingsContainer = document.getElementById('drawings-container');
+            drawingsContainer.innerHTML = ex.drawings.map((desc, i) => `
+                <div class="drawing-placeholder">
+                    <span class="text-[8px] font-black text-slate-500 uppercase mb-2">Paso ${i+1}</span>
+                    <div class="text-xl mb-1">${ex.icon}</div>
+                    <p class="text-[9px] leading-tight text-slate-400 font-medium px-1">${desc}</p>
+                </div>
+            `).join('');
+
             document.getElementById('modal-list').innerHTML = ex.instructions.map((s, i) => `
                 <li class="flex gap-4"><span class="bg-slate-800 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">${i+1}</span><span>${s}</span></li>
             `).join('');
+            
             document.getElementById('modal-info').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
         }
 
-        function closeModal() { document.getElementById('modal-info').classList.add('hidden'); }
+        function closeModal() { 
+            document.getElementById('modal-info').classList.add('hidden'); 
+            document.body.style.overflow = 'auto';
+        }
 
         window.onload = init;
     </script>
