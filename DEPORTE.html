@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrenamiento HIIT 30' Casa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .progress-ring { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        .animate-pulse-slow { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        #music-player { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center p-4 pb-24">
+
+    <!-- Encabezado de Estado -->
+    <header class="w-full max-w-md mt-4 mb-6 flex justify-between items-center">
+        <h1 class="text-xl font-black tracking-tighter flex items-center gap-2">
+            <span class="text-orange-500">🔥</span> 30' HOME HIIT
+        </h1>
+        <div class="bg-slate-900 px-4 py-1 rounded-full border border-slate-800">
+            <span id="total-time-display" class="text-xs font-mono text-emerald-400">00:00</span>
+        </div>
+    </header>
+
+    <main class="w-full max-w-md flex-grow flex flex-col">
+        
+        <!-- PANTALLA INICIAL (IDLE) -->
+        <section id="screen-idle" class="space-y-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+                <div class="p-6 border-b border-slate-800 bg-slate-800/50">
+                    <h2 class="text-sm font-black text-orange-500 uppercase tracking-widest flex items-center gap-2">
+                        ⏱️ Fase 1: Calentamiento (3 min)
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div id="warmup-list" class="space-y-4 mb-6">
+                        <!-- Se llena con JS -->
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-black text-blue-500 uppercase tracking-widest">Fase 2: El Circuito</h3>
+                            <button onclick="shuffleExercises()" class="text-slate-500 hover:text-white transition-colors">
+                                🔄 Mezclar
+                            </button>
+                        </div>
+                        <div id="selected-exercises-grid" class="grid grid-cols-5 gap-2">
+                            <!-- Se llena con JS -->
+                        </div>
+                    </div>
+
+                    <button onclick="startWorkout()" class="w-full mt-8 bg-orange-600 hover:bg-orange-500 py-5 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-all">
+                        EMPEZAR CALENTAMIENTO
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANTALLA DE ENTRENAMIENTO ACTIVO -->
+        <section id="screen-active" class="hidden space-y-4">
+            <div id="timer-card" class="relative rounded-[2.5rem] p-10 text-center border-4 shadow-2xl transition-all duration-500 bg-slate-900 border-blue-600/50">
+                <div class="absolute top-4 left-0 right-0 flex justify-center">
+                    <span id="phase-label" class="px-4 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-blue-600">
+                        EJERCICIO
+                    </span>
+                </div>
+
+                <h2 id="current-item-name" class="text-2xl font-black mt-4 mb-8">Nombre</h2>
+
+                <div id="main-timer" class="text-8xl font-black font-mono tracking-tighter mb-8 tabular-nums">
+                    00
+                </div>
+
+                <div class="flex gap-4 justify-center">
+                    <button id="btn-pause" onclick="togglePause()" class="w-16 h-16 flex items-center justify-center bg-slate-800 rounded-full hover:bg-slate-700" title="Pausar/Reanudar">
+                        ⏸️
+                    </button>
+                    <button onclick="skipStep()" class="w-16 h-16 flex items-center justify-center bg-slate-800 rounded-full hover:bg-slate-700" title="Siguiente fase">
+                        ⏭️
+                    </button>
+                    <button onclick="resetWorkout()" class="w-16 h-16 flex items-center justify-center bg-slate-800 rounded-full hover:bg-slate-700" title="Reiniciar todo">
+                        🔄
+                    </button>
+                </div>
+            </div>
+
+            <!-- Instrucciones -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+                <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Guía Técnica:</h3>
+                <ul id="instructions-list" class="space-y-2 text-sm text-slate-300">
+                    <!-- Se llena con JS -->
+                </ul>
+            </div>
+        </section>
+
+        <!-- PANTALLA FINAL -->
+        <section id="screen-finished" class="hidden bg-slate-900 border border-emerald-500/30 rounded-3xl p-10 text-center">
+            <div class="w-20 h-20 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                🏆
+            </div>
+            <h2 class="text-3xl font-black mb-2">¡SESIÓN COMPLETADA!</h2>
+            <p class="text-slate-400 mb-8 italic">Buen trabajo quemando grasa hoy.</p>
+            <div class="bg-black/40 rounded-2xl p-6 mb-8 border border-slate-800">
+                <p class="text-xs font-bold text-slate-500 uppercase mb-2">Inversión de hoy:</p>
+                <p id="final-total-time" class="text-5xl font-mono font-black text-emerald-400">00:00</p>
+            </div>
+            <button onclick="resetWorkout()" class="w-full bg-orange-600 py-4 rounded-2xl font-bold">VOLVER AL INICIO</button>
+        </section>
+
+    </main>
+
+    <!-- Reproductor de Música (YouTube Directo - Código Incrustado) -->
+    <div id="music-player" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-slate-900 border-t border-slate-800 rounded-t-3xl shadow-2xl translate-y-[calc(100%-48px)] z-40 overflow-hidden">
+        <button onclick="toggleMusicPanel()" class="w-full h-12 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors border-b border-slate-800/50">
+            <span id="music-toggle-icon">🎵</span> MÚSICA PARA ENTRENAR
+        </button>
+        
+        <div class="p-4 flex flex-col gap-4 h-72">
+            <div class="flex-grow">
+                <iframe id="music-iframe" 
+                    class="w-full h-full rounded-2xl border border-slate-800 bg-black" 
+                    src="https://www.youtube.com/embed/n2KeSxmorqM" 
+                    title="🔥 120 min Música para Correr y Entrenar 2025 • Mix Motivacional 🔥" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    referrerpolicy="strict-origin-when-cross-origin" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+            <div class="text-center">
+                <a href="https://youtu.be/n2KeSxmorqM" target="_blank" class="text-[10px] text-slate-500 hover:text-orange-400 transition-colors uppercase font-bold tracking-tighter">
+                    ¿No carga? Abrir en YouTube directamente ↗
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalles -->
+    <div id="modal-info" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+        <div class="bg-slate-900 max-w-sm w-full rounded-3xl overflow-hidden border border-slate-800">
+            <div id="modal-header" class="p-12 text-center text-7xl bg-blue-600">🦵</div>
+            <div class="p-8">
+                <h3 id="modal-title" class="text-2xl font-black mb-4">Título</h3>
+                <ul id="modal-list" class="space-y-4 mb-8 text-sm text-slate-300"></ul>
+                <button onclick="closeModal()" class="w-full bg-white text-black py-4 rounded-2xl font-bold">CERRAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATOS ---
+        const ALL_EXERCISES = [
+            { name: "Sentadillas", instructions: ["Pies a anchura de hombros.", "Baja cadera como si te sentaras.", "Espalda recta, peso en talones.", "Sube apretando glúteos."], icon: "🦵", color: "bg-blue-600" },
+            { name: "Flexiones", instructions: ["Manos bajo los hombros.", "Cuerpo recto como tabla.", "Baja pecho al suelo.", "Apoya rodillas si es difícil."], icon: "💪", color: "bg-red-600" },
+            { name: "Zancadas", instructions: ["Paso largo adelante.", "Baja rodilla trasera al suelo.", "Mantén torso vertical.", "Alterna piernas."], icon: "🏃", color: "bg-green-600" },
+            { name: "Escaladores", instructions: ["Posición de plancha alta.", "Lleva rodillas al pecho rápido.", "Mantén cadera baja.", "Ritmo constante."], icon: "⛰️", color: "bg-yellow-600" },
+            { name: "Burpees", instructions: ["Baja a cuclillas.", "Salta atrás a plancha.", "Vuelve a cuclillas.", "Termina con salto vertical."], icon: "🔥", color: "bg-purple-600" },
+            { name: "Jumping Jacks", instructions: ["Salta abriendo piernas y brazos.", "Vuelve a cerrar en el aire.", "Rodillas suaves.", "Ritmo ágil."], icon: "✨", color: "bg-pink-600" },
+            { name: "Plancha", instructions: ["Apoya antebrazos y pies.", "Cuerpo paralelo al suelo.", "Aprieta abdomen fuerte.", "No bajes cadera."], icon: "🧱", color: "bg-indigo-600" },
+            { name: "Puente de Glúteo", instructions: ["Boca arriba, pies cerca.", "Eleva cadera al techo.", "Aprieta glúteos arriba.", "Baja despacio."], icon: "🍑", color: "bg-orange-600" },
+            { name: "Bicicleta", instructions: ["Tumbado, manos tras nuca.", "Codo a rodilla contraria.", "Alterna fluido.", "Estira pierna libre."], icon: "🚲", color: "bg-teal-600" },
+            { name: "Skipping", instructions: ["Corre en el sitio.", "Sube rodillas al ombligo.", "Mueve brazos coordinados.", "Usa las puntas."], icon: "⚡", color: "bg-cyan-600" },
+            { name: "Toque de Hombros", instructions: ["Plancha alta.", "Toca hombro opuesto con mano.", "Cadera estable.", "Abdomen fuerte."], icon: "✋", color: "bg-amber-600" },
+            { name: "Squat Jumps", instructions: ["Haz sentadilla.", "Salta explosivo arriba.", "Amortigua la caída.", "Usa brazos de impulso."], icon: "🚀", color: "bg-violet-600" }
+        ];
+
+        const WARMUP_STEPS = [
+            { name: "Rotación Articular", desc: "Mueve cuello, hombros y muñecas suave.", duration: 60 },
+            { name: "Movilidad de Cadera", desc: "Círculos amplios con la cadera.", duration: 60 },
+            { name: "Activación Suave", desc: "Trote ligero en el sitio.", duration: 60 }
+        ];
+
+        // --- ESTADO ---
+        let sessionExercises = [];
+        let phase = 'IDLE'; 
+        let warmupIndex = 0;
+        let exerciseIndex = 0;
+        let round = 1;
+        let timeLeft = 0;
+        let totalTime = 0;
+        let isActive = false;
+        let timerInterval;
+        let totalTimeInterval;
+        let musicPanelOpen = false;
+
+        // --- FUNCIONES CORE ---
+
+        function init() {
+            renderWarmupList();
+            shuffleExercises();
+        }
+
+        function renderWarmupList() {
+            const list = document.getElementById('warmup-list');
+            list.innerHTML = WARMUP_STEPS.map((step, i) => `
+                <div class="flex gap-4 items-start">
+                    <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold shrink-0">${i+1}</div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-200">${step.name}</p>
+                        <p class="text-xs text-slate-500">${step.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function shuffleExercises() {
+            sessionExercises = [...ALL_EXERCISES].sort(() => 0.5 - Math.random()).slice(0, 5);
+            const grid = document.getElementById('selected-exercises-grid');
+            grid.innerHTML = sessionExercises.map((ex, i) => `
+                <button onclick="showDetails(${i})" class="bg-slate-800 aspect-square rounded-xl flex items-center justify-center text-2xl hover:bg-slate-700 border border-slate-700/50">
+                    ${ex.icon}
+                </button>
+            `).join('');
+        }
+
+        function startWorkout() {
+            phase = 'WARMUP';
+            warmupIndex = 0;
+            timeLeft = WARMUP_STEPS[0].duration;
+            isActive = true;
+            showScreen('screen-active');
+            updateUI();
+            startTimers();
+        }
+
+        function startTimers() {
+            if (timerInterval) clearInterval(timerInterval);
+            if (totalTimeInterval) clearInterval(totalTimeInterval);
+            timerInterval = setInterval(() => {
+                if (isActive) {
+                    timeLeft--;
+                    if (timeLeft < 0) nextStep(); else {
+                        if (timeLeft <= 3 && timeLeft > 0) playBeep(600, 0.05);
+                        updateUI();
+                    }
+                }
+            }, 1000);
+            totalTimeInterval = setInterval(() => {
+                if (isActive) {
+                    totalTime++;
+                    document.getElementById('total-time-display').innerText = formatTime(totalTime);
+                }
+            }, 1000);
+        }
+
+        function nextStep() {
+            playBeep(880, 0.2);
+            if (phase === 'WARMUP') {
+                if (warmupIndex < WARMUP_STEPS.length - 1) {
+                    warmupIndex++;
+                    timeLeft = WARMUP_STEPS[warmupIndex].duration;
+                } else { phase = 'WORK'; exerciseIndex = 0; timeLeft = 40; }
+            } else if (phase === 'WORK') { phase = 'REST'; timeLeft = 20; }
+            else if (phase === 'REST') {
+                if (exerciseIndex < sessionExercises.length - 1) {
+                    exerciseIndex++; phase = 'WORK'; timeLeft = 40;
+                } else {
+                    if (round < 4) { round++; exerciseIndex = 0; phase = 'WORK'; timeLeft = 40; }
+                    else { finishWorkout(); return; }
+                }
+            }
+            updateUI();
+        }
+
+        function skipStep() { playBeep(440, 0.1); nextStep(); }
+
+        function updateUI() {
+            const mainTimer = document.getElementById('main-timer');
+            const itemName = document.getElementById('current-item-name');
+            const label = document.getElementById('phase-label');
+            const list = document.getElementById('instructions-list');
+            const card = document.getElementById('timer-card');
+            mainTimer.innerText = timeLeft;
+            if (phase === 'WARMUP') {
+                itemName.innerText = WARMUP_STEPS[warmupIndex].name;
+                label.innerText = "CALENTAMIENTO";
+                label.className = "px-4 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-orange-600";
+                card.className = "relative rounded-[2.5rem] p-10 text-center border-4 shadow-2xl transition-all duration-500 bg-orange-900/10 border-orange-600/50";
+                list.innerHTML = `<li class="italic text-center py-2">${WARMUP_STEPS[warmupIndex].desc}</li>`;
+            } else if (phase === 'WORK') {
+                const ex = sessionExercises[exerciseIndex];
+                itemName.innerText = ex.name;
+                label.innerText = `RONDA ${round}/4`;
+                label.className = "px-4 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-blue-600";
+                card.className = "relative rounded-[2.5rem] p-10 text-center border-4 shadow-2xl transition-all duration-500 bg-slate-900 border-blue-600/50";
+                list.innerHTML = ex.instructions.map(step => `<li><span class="text-blue-500 font-bold">•</span> ${step}</li>`).join('');
+            } else if (phase === 'REST') {
+                itemName.innerText = "¡DESCANSA!";
+                label.innerText = "RECUPERACIÓN";
+                label.className = "px-4 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-emerald-600";
+                card.className = "relative rounded-[2.5rem] p-10 text-center border-4 shadow-2xl transition-all duration-500 bg-emerald-950/20 border-emerald-500/50";
+                const nextEx = exerciseIndex < sessionExercises.length - 1 ? sessionExercises[exerciseIndex + 1].name : "Siguiente Ronda";
+                list.innerHTML = `<li class="text-center py-2">Próximo: <span class="text-emerald-400 font-bold">${nextEx}</span></li>`;
+            }
+        }
+
+        function finishWorkout() {
+            isActive = false; clearInterval(timerInterval); clearInterval(totalTimeInterval);
+            showScreen('screen-finished');
+            document.getElementById('final-total-time').innerText = formatTime(totalTime);
+        }
+
+        function togglePause() {
+            isActive = !isActive;
+            document.getElementById('btn-pause').innerText = isActive ? "⏸️" : "▶️";
+        }
+
+        function resetWorkout() {
+            isActive = false; clearInterval(timerInterval); clearInterval(totalTimeInterval);
+            phase = 'IDLE'; warmupIndex = 0; exerciseIndex = 0; round = 1; totalTime = 0;
+            document.getElementById('total-time-display').innerText = "00:00";
+            showScreen('screen-idle'); shuffleExercises();
+        }
+
+        // --- FUNCIONES MÚSICA ---
+        function toggleMusicPanel() {
+            musicPanelOpen = !musicPanelOpen;
+            const panel = document.getElementById('music-player');
+            const icon = document.getElementById('music-toggle-icon');
+            panel.style.transform = musicPanelOpen ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(calc(100% - 48px))";
+            icon.innerText = musicPanelOpen ? "🔽" : "🎵";
+        }
+
+        // --- UTILIDADES ---
+        function showScreen(id) {
+            ['screen-idle', 'screen-active', 'screen-finished'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function playBeep(freq, duration) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+                oscillator.frequency.value = freq;
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                oscillator.start(); oscillator.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function showDetails(idx) {
+            const ex = sessionExercises[idx];
+            document.getElementById('modal-header').innerText = ex.icon;
+            document.getElementById('modal-header').className = `p-12 text-center text-7xl ${ex.color}`;
+            document.getElementById('modal-title').innerText = ex.name;
+            document.getElementById('modal-list').innerHTML = ex.instructions.map((s, i) => `
+                <li class="flex gap-4"><span class="bg-slate-800 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">${i+1}</span><span>${s}</span></li>
+            `).join('');
+            document.getElementById('modal-info').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('modal-info').classList.add('hidden'); }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
